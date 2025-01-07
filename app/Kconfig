@@ -543,12 +543,9 @@ config ZMK_USB_LOGGING
     select LOG
     select USB
     select USB_DEVICE_STACK
-    select USB_CDC_ACM
     select SERIAL
     select CONSOLE
-    select UART_INTERRUPT_DRIVEN
     select UART_LINE_CTRL
-    select UART_CONSOLE
     select USB_UART_CONSOLE
 
 if ZMK_USB_LOGGING
