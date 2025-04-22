@@ -109,8 +109,7 @@ target_sources_ifdef(CONFIG_ZMK_BACKLIGHT app PRIVATE src/backlight.c)
 target_sources_ifdef(CONFIG_ZMK_LOW_PRIORITY_WORK_QUEUE app PRIVATE src/workqueue.c)
 target_sources(app PRIVATE src/main.c)
 
-## TODO: add config
-target_sources(app PRIVATE src/trackball.c)
+target_sources_ifdef(CONFIG_PMW3389 app PRIVATE src/trackball.c)
 
 add_subdirectory(src/display/)
 add_subdirectory_ifdef(CONFIG_SETTINGS src/settings/)
