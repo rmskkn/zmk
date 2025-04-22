@@ -5,7 +5,7 @@ manifest:
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
     - name: pmw3389
-      url-base: https://github.com/teamspatzenhirn
+      url-base: git@github.com:galaxyraiser
   projects:
     - name: zephyr
       remote: zmkfirmware
@@ -41,7 +41,8 @@ manifest:
       remote: zmkfirmware
     - name: pmw3389_zephyr_driver
       remote: pmw3389
-      revision: 837e0ab2182d8748b46bf188f03c7dde4d4e0328
+      revision: ad3ebc4afe7be840d3e367d5ea53510a168c36e4
       path: modules/pmw3389
+
   self:
     west-commands: scripts/west-commands.yml
