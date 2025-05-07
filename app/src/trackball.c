@@ -28,21 +28,12 @@ enum interface_input_mode {
 };
 static enum interface_input_mode current_mode;
 
+__attribute__((unused))
 static void trackball_trigger_handler(const struct device *dev,
                                         const struct sensor_trigger *trigger) {
-	struct pmw3389_data *data = dev->data;
-#if 0
-    struct sensor_value data;
-
-    sensor_sample_fetch(trackball);
-    sensor_channel_get(dev, SENSOR_CHAN_POS_DX, &data);
-    LOG_INF("X:%u", data.val1);
-    sensor_channel_get(dev, SENSOR_CHAN_POS_DY, &data);
-    LOG_INF("Y:%u", data.val1);
-#endif
-    // TODO: do not set always
-    // set queue descriptor
-    atomic_ptr_set(&data->out_q, &mouse_action_msgq);
+    //struct pmw3389_data *data = dev->data;
+    //set queue descriptor
+    //atomic_ptr_set(&data->out_q, &mouse_action_msgq);
 }
 
 static void process_thread(void *arg1, void *arg2, void *arg3) {
@@ -73,7 +64,7 @@ static void process_thread(void *arg1, void *arg2, void *arg3) {
 
 static void toggle_scroll() {
     LOG_INF("scroll toggled");
-    struct sensor_value dpi = {.val1 = 500};
+    struct sensor_value dpi = {.val1 = 200};
     if (sensor_attr_set(trackball, SENSOR_CHAN_ALL, SENSOR_ATTR_FULL_SCALE, &dpi) < 0) {
         LOG_WRN("Set dpi failed");
     }
@@ -138,12 +129,20 @@ static int trackball_init(void)
         return 0;
     }
 
+#if 0
     // NULL as trig type as we don't expect to use multiple type of trig events
     int err = sensor_trigger_set(trackball, NULL, trackball_trigger_handler);
     if (err) {
         LOG_ERR("Failed to set sensor trigger (%d)", err);
         return 0;
     }
+#endif
+
+    struct sensor_value val = {.val1 = (int32_t)(uint32_t)&mouse_action_msgq};
+    if (sensor_attr_set(trackball, SENSOR_CHAN_ALL, PMW3389_ATTR_SET_PIPE, &val) < 0) {
+		LOG_ERR("Cannot set msg pipe");
+		return 0;
+	}
 
     if (k_thread_create(&thread_data,
                    thread_stack,
