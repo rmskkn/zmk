@@ -5,7 +5,7 @@ manifest:
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
     - name: pmw3389
-      url-base: git@github.com:galaxyraiser
+      url-base: git@github.com:rmskkn
   projects:
     - name: zephyr
       remote: zmkfirmware
