@@ -4,8 +4,8 @@ manifest:
       url-base: https://github.com/zephyrproject-rtos
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
-    - name: pmw3389
-      url-base: git@github.com:rmskkn
+    - name: personal
+      url-base: https://github.com/rmskkn
   projects:
     - name: zephyr
       remote: zmkfirmware
@@ -40,7 +40,7 @@ manifest:
       path: modules/msgs/zmk-studio-messages
       remote: zmkfirmware
     - name: pmw3389_zephyr_driver
-      remote: pmw3389
+      remote: personal
       revision: b9c2a96da6e8e1ae69fe75a908ad113a0c74f3e9
       path: modules/pmw3389
 
