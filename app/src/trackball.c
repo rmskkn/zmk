@@ -9,6 +9,8 @@
 #include <zmk/event_manager.h>
 #include <zmk/keymap.h>
 #include <zmk/events/layer_state_changed.h>
+#include <zmk/events/position_state_changed.h>
+#include <zmk/events/keycode_state_changed.h>
 
 LOG_MODULE_REGISTER(trackball, LOG_LEVEL_DBG);
 
@@ -21,12 +23,12 @@ K_MSGQ_DEFINE(mouse_action_msgq, sizeof(struct mouse_input_report), 8, 4);
 K_THREAD_STACK_DEFINE(thread_stack, 1024);
 static struct k_thread thread_data;
 
-enum interface_input_mode {
+enum input_mode {
     MOVE,
     SCROLL,
     SNIPE
 };
-static enum interface_input_mode current_mode;
+static enum input_mode current_mode;
 
 __attribute__((unused))
 static void trackball_trigger_handler(const struct device *dev,
@@ -64,7 +66,7 @@ static void process_thread(void *arg1, void *arg2, void *arg3) {
 
 static void toggle_scroll() {
     LOG_INF("scroll toggled");
-    struct sensor_value dpi = {.val1 = 200};
+    struct sensor_value dpi = {.val1 = 150};
     if (sensor_attr_set(trackball, SENSOR_CHAN_ALL, SENSOR_ATTR_FULL_SCALE, &dpi) < 0) {
         LOG_WRN("Set dpi failed");
     }
@@ -83,25 +85,11 @@ static void fast_dpi(void) {
 
 }
 
-static enum interface_input_mode get_input_mode_for_current_layer(void) {
-    for (int i = 0; i < 4; i++) {
-        if (zmk_keymap_layer_active(i)) {
-            if (i == 1) {
-                return SCROLL;
-            }
-        }
-    }
-    return MOVE;
-}
+static int set_trackball_mode(enum input_mode mode) {
+    if (mode != current_mode) {
+        LOG_INF("input mode changed to %d", mode);
 
-static int layer_state_listener_cb(const zmk_event_t *eh) {
-    enum interface_input_mode input_mode = get_input_mode_for_current_layer();
-    LOG_INF("Layer changed");
-
-    if (input_mode != current_mode) {
-        LOG_INF("input mode changed to %d", input_mode);
-
-        switch (input_mode) {
+        switch (mode) {
             case MOVE:
                 cycle_dpi();
                 break;
@@ -111,15 +99,39 @@ static int layer_state_listener_cb(const zmk_event_t *eh) {
             case SNIPE:
                 fast_dpi();
                 break;
+            default:
+                LOG_ERR("Unknown input mode");
+                return -1;
         }
-        current_mode = input_mode;
+        current_mode = mode;
     }
 
     return 0;
 }
 
-ZMK_LISTENER(layer_state_listener, layer_state_listener_cb);
-ZMK_SUBSCRIPTION(layer_state_listener, zmk_layer_state_changed);
+//ZMK_LISTENER(layer_state_listener, layer_state_listener_cb);
+//ZMK_SUBSCRIPTION(layer_state_listener, zmk_layer_state_changed);
+
+static int key_listener(const zmk_event_t *eh) {
+    struct zmk_position_state_changed *kc_state;
+
+    kc_state = as_zmk_position_state_changed(eh);
+    if (!kc_state) {
+        return 0;
+    }
+
+    // Scroll lock on hold position
+    // Nav layer is active
+    if (kc_state->position == 12) {
+        bool scroll_mode = kc_state->state && zmk_keymap_layer_active(1);
+        set_trackball_mode(scroll_mode ? SCROLL : MOVE);
+    }
+
+    return 0;
+}
+
+ZMK_LISTENER(zmk_trackball_key, key_listener);
+ZMK_SUBSCRIPTION(zmk_trackball_key, zmk_position_state_changed);
 
 static int trackball_init(void)
 {
