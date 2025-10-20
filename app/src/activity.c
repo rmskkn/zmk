@@ -8,6 +8,7 @@
 #include <zephyr/init.h>
 #include <zephyr/kernel.h>
 #include <zephyr/sys/poweroff.h>
+#include <zephyr/drivers/gpio.h>
 
 #include <zephyr/logging/log.h>
 
@@ -78,13 +79,21 @@ void activity_work_handler(struct k_work *work) {
     if (inactive_time > MAX_SLEEP_MS && !is_usb_power_present()) {
         // Put devices in suspend power mode before sleeping
         set_state(ZMK_ACTIVITY_SLEEP);
+        LOG_ERR("Suspend all devices");
 
         if (zmk_pm_suspend_devices() < 0) {
             LOG_ERR("Failed to suspend all the devices");
             zmk_pm_resume_devices();
             return;
         }
-
+#if IS_ENABLED(CONFIG_ZMK_USB_LOGGING)
+        k_msleep(3000);
+#endif
+        // SPI CS
+        static const struct device *gpio0 = DEVICE_DT_GET(DT_NODELABEL(gpio0));
+        if (device_is_ready(gpio0)) {
+            gpio_pin_configure(gpio0, 6, GPIO_INPUT | GPIO_PULL_DOWN);
+        }
         sys_poweroff();
     } else
 #endif /* IS_ENABLED(CONFIG_ZMK_SLEEP) */

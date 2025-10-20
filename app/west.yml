@@ -43,6 +43,10 @@ manifest:
       remote: personal
       revision: b9c2a96da6e8e1ae69fe75a908ad113a0c74f3e9
       path: modules/pmw3389
+    - name: cirque-input-module
+      revision: 0de55f36bc720b5be3d8880dc856d4d78baf5214
+      remote: personal
+      path: modules/cirque
 
   self:
     west-commands: scripts/west-commands.yml
